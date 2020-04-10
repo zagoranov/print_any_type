@@ -24,37 +24,24 @@ public:
 			std::cout << (my_ptr ? "" : "]") << std::endl;
 		}
 	}; 
+	
+    template<typename T>
+    void new_value(T&& x) { p_value = new T(x); my_ptr = true; PrintFunc = &prpr<T>;}
+		
+    template<typename T>
+    void new_value(T* x) { p_value = x; my_ptr = false; PrintFunc = &prpr<T>;}
+    
+    template<typename T>
+    void new_value(T& x) { p_value = x; my_ptr = false; PrintFunc = &prpr<T>;}
 
-	template<typename T>
-	Printer& operator=(T x) noexcept {
-		if (my_ptr)
-			delete p_value;
-		p_value = new T(x);
-		PrintFunc = &prpr<T>;
-		my_ptr = true;
-		return *this;
-	};
-
-	template<typename T>
-	Printer& operator=(T* x) noexcept {
-		if(my_ptr)
-			delete p_value;
-		p_value = x;
-		my_ptr = false;
-		PrintFunc = &prpr<T>;
-		return *this; 
-	};
-
-	template<typename T>
-	Printer& operator=(T& x) noexcept {
-		if (my_ptr)
-			delete p_value;
-		p_value = x;
-		my_ptr = false;
-		PrintFunc = &prpr<T>;
-		return *this;
-	};
-
+    template<typename T>
+    Printer& operator=(T&& x) noexcept {
+	if(my_ptr)
+	    delete p_value;
+	new_value(std::forward<T>(x));
+	return *this; 
+     };
+	
 
 private:
 	void* p_value;
@@ -100,27 +87,21 @@ public:
 		value->print();
 	};
 
-	template<typename T>
-	Printer2& operator=(T x) noexcept {
-		delete value;
-		value = new B<T>(x);
-		return *this;
-	};
+    template<typename T>
+    void new_value(T&& x) { value = new B<T>(x);}
+		
+    template<typename T>
+    void new_value(T* x) { value = new B_ptr<T>(x);}
+    
+    template<typename T>
+    void new_value(T& x) { value = new B_ptr<T>(x);}
 
-	template<typename T>
-	Printer2& operator=(T* x) noexcept {
-		delete value;
-		value = new B_ptr<T>(x);
-		return *this;
-	};
-
-	template<typename T>
-	Printer2& operator=(T& x) noexcept {
-		delete value;
-		value = new B_ptr<T>(x);
-		return *this;
-	};
-
+    template<typename T>
+    Printer2& operator=(T&& x) noexcept {
+    	delete value;
+	new_value(std::forward<T>(x));
+	return *this;
+     };
 
 private:
 	A* value;
