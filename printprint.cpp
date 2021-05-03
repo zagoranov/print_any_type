@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 using namespace std;
 
@@ -108,11 +109,57 @@ private:
 };
 
 
+//-----------------------  Solution 3 (shorter version of solution 2) --------------------------//
+//-----------  No need in surplus pointer handling stuff when you have type traits -------------//
+
+class A3 {
+public:
+	virtual ~A3() = default;
+	virtual void print() const = 0;
+};
+
+template<typename T>
+class B3 : public A3 {
+public:
+	B3(T value) : value_(value) {};
+	virtual void print() const {
+		std::cout << value_ << std::endl;
+	};
+	T value_;
+};
+
+class Printer3 {
+public:
+	Printer3() : value(nullptr) {};
+	~Printer3() { delete value; };
+
+	void print() const {
+		value->print();
+	};
+		
+    template<typename T>
+    Printer3& operator=(T&& x) noexcept {
+        delete value;
+	if constexpr(std::is_pointer<T>::value || std::is_lvalue_reference<T>::value) {
+            value = new B3<decltype(*x)>(*x);
+        }
+        else
+            value = new B3<T>(x);
+	return *this;
+    }
+
+private:
+	A3* value;
+};
+
+
+
 //-------------------------------------------------------------//
 
 
+
 int main() {
-	Printer2 printer;
+	Printer3 printer;
 
 	printer = 42;
 	printer.print(); //should print "42" to standard output
